@@ -221,7 +221,7 @@ def augment_audio_signal(signal, sample_freq, augmentation):
             'noise_level_max': -46,
           }
         'speed_perturbation_ratio' can either be a list of possible speed
-        perturbation factors or a float. If float, a random value from 
+        perturbation factors or a float. If float, a random value from
         U[1-speed_perturbation_ratio, 1+speed_perturbation_ratio].
   Returns:
     np.array: np.array with augmented audio signal.
@@ -286,11 +286,12 @@ def get_speech_features(signal, sample_freq, params):
     num_fft = params.get('num_fft', None)
     norm_per_feature = params.get('norm_per_feature', False)
     mel_basis = params.get('mel_basis', None)
+    # import pdb; pdb.set_trace();
     if mel_basis is not None and sample_freq != params["sample_freq"]:
       raise ValueError(
           ("The sampling frequency set in params {} does not match the "
-           "frequency {} read from file {}").format(params["sample_freq"],
-                                                    sample_freq, filename)
+           "frequency {} read from file").format(params["sample_freq"],sample_freq)
+                                                    # sample_freq, filename)
       )
     features, duration = get_speech_features_librosa(
         signal, sample_freq, num_features, features_type,
@@ -305,7 +306,7 @@ def get_speech_features(signal, sample_freq, params):
         window_size, window_stride, augmentation
     )
 
-  return features, duration 
+  return features, duration
 
 
 def get_speech_features_librosa(signal, sample_freq, num_features,

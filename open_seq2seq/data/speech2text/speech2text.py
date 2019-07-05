@@ -135,7 +135,7 @@ class Speech2TextDataLayer(DataLayer):
     if self.params["interactive"]:
       return
     for csv in params['dataset_files']:
-      files = pd.read_csv(csv, encoding='utf-8')
+      files = pd.read_csv(csv, encoding='utf-8', sep=";")
       if self._files is None:
         self._files = files
       else:
@@ -214,7 +214,11 @@ class Speech2TextDataLayer(DataLayer):
 
       """Builds data processing graph using ``tf.data`` API."""
       if self.params['mode'] != 'infer':
-        self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
+        
+        try:
+          self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
+        except:
+          import pdb; pdb.set_trace();
         if self.params['shuffle']:
           self._dataset = self._dataset.shuffle(self._size)
         self._dataset = self._dataset.repeat()
