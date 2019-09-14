@@ -6,6 +6,10 @@ from __future__ import unicode_literals
 import pickle
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
+from ctc_decoders import ctc_greedy_decoder
+from vz.asr.base.encoders import ProbCodec
+
+
 from io import BytesIO
 import matplotlib.pyplot as plt
 import numpy as np
@@ -340,11 +344,24 @@ class Speech2Text(EncoderDecoderModel):
                 if convs:
                     for c in convs:
                         scale *= c["stride"][0]
-            dump_out["step_size"] = scale*step_size
-            dump_out["vocab"] = self.get_data_layer().params['idx2char']
-            with open(output_file, 'wb') as f:
-                pickle.dump(dump_out, f, protocol=pickle.HIGHEST_PROTOCOL)
-            f.close()
+
+            vocab_dict = self.get_data_layer().params['idx2char']
+            codec = ProbCodec(vocab_dict)
+            vocab_list = list(vocab_dict.values())
+            final_result = []
+            for wav_filename, logits in dump_out["logits"].items():
+                enc_str = codec.encode_sentence_prob(logits)
+                greedy_output = ctc_greedy_decoder(
+                    probs_seq=logits, vocabulary=vocab_list[:-1])  # Removing CTC character
+                final_result.append({
+                    "path": wav_filename,
+                    "greedy_output": greedy_output,
+                    "encoded_string": enc_str
+                })
+
+            cols = ["path", "greedy_output", "encoded_string"]
+            pd.DataFrame(final_result).to_csv(
+                output_file, index=False, columns=cols)
         else:
             pd.DataFrame(
                 {
